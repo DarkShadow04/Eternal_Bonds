@@ -4,7 +4,7 @@ let tiltFrame = 0;
 let particleFrame = 0;
 const moods = {
   friendship: {
-    notes: [392, 494, 587, 659, 587, 494],
+    notes: [392, 440, 523, 587, 659, 587, 523, 440],
     symbols: ['🎁','⭐','🪁','☕','🌍','🤝'],
     lines: [
       'You found loyalty: the quiet promise of “I am here.”',
@@ -24,7 +24,7 @@ const moods = {
     ]
   },
   girlfriend: {
-    notes: [523, 659, 784, 880, 784, 659],
+    notes: [330, 392, 494, 523, 659, 587, 494, 392],
     symbols: ['💖','🌹','✨','💌','🌙','🦋'],
     lines: [
       'Secret note: you are loved in details, not just grand gestures.',
@@ -111,7 +111,7 @@ window.addEventListener('load', () => { randomizeQuotes(); createSecrets(); });
 document.querySelector('.wish-button')?.addEventListener('click', () => {
   const mood = document.body.dataset.mood;
   showFadingQuote(randomLine(moods[mood].lines));
-  for (let i = 0; i < 5; i++) setTimeout(() => sparkle({ left: innerWidth/2, top: innerHeight/2, width: 0, height: 0 }), i * 70);
+  launchCelebration(document.querySelector('.wish-button')?.dataset.effect || mood);
 });
 
 function randomizeQuotes() {
@@ -150,4 +150,43 @@ function sparkle(rect) {
   const dot = document.createElement('span');
   dot.className = 'sparkle'; dot.textContent = '✦'; dot.style.left = `${rect.left + rect.width/2 + (Math.random() - .5) * 120}px`; dot.style.top = `${rect.top + rect.height/2 + (Math.random() - .5) * 90}px`;
   document.body.appendChild(dot); setTimeout(() => dot.remove(), 900);
+}
+function launchCelebration(effect) {
+  if (effect === 'bloom') {
+    firework(innerWidth * .5, innerHeight * .28, ['#ff7bb8', '#ffd1e6', '#ffffff']);
+    setTimeout(() => flowerBloom(innerWidth * .5, innerHeight * .42), 240);
+    setTimeout(() => firework(innerWidth * .68, innerHeight * .22, ['#ffc6dd', '#ff5da7', '#fff']), 420);
+    return;
+  }
+  firework(innerWidth * .46, innerHeight * .25, ['#62e8ff', '#e9c46a', '#ffffff']);
+  setTimeout(() => firework(innerWidth * .62, innerHeight * .2, ['#8f7cff', '#62e8ff', '#fff']), 260);
+  setTimeout(() => firework(innerWidth * .36, innerHeight * .34, ['#e9c46a', '#ffffff', '#62e8ff']), 430);
+}
+function firework(cx, cy, colors) {
+  const layer = document.querySelector('.sky-effects') || document.body;
+  for (let i = 0; i < 34; i++) {
+    const spark = document.createElement('span');
+    const angle = (Math.PI * 2 * i) / 34;
+    const distance = 70 + Math.random() * 120;
+    spark.className = 'spark';
+    spark.style.left = `${cx}px`; spark.style.top = `${cy}px`;
+    spark.style.setProperty('--x', `${Math.cos(angle) * distance}px`);
+    spark.style.setProperty('--y', `${Math.sin(angle) * distance}px`);
+    spark.style.setProperty('--spark', colors[i % colors.length]);
+    layer.appendChild(spark); setTimeout(() => spark.remove(), 1000);
+  }
+}
+function flowerBloom(cx, cy) {
+  const layer = document.querySelector('.sky-effects') || document.body;
+  for (let i = 0; i < 28; i++) {
+    const petal = document.createElement('span');
+    const angle = (Math.PI * 2 * i) / 28;
+    const distance = 42 + Math.random() * 112;
+    petal.className = 'petal';
+    petal.style.left = `${cx}px`; petal.style.top = `${cy}px`;
+    petal.style.setProperty('--x', `${Math.cos(angle) * distance}px`);
+    petal.style.setProperty('--y', `${Math.sin(angle) * distance}px`);
+    petal.style.setProperty('--r', `${angle * 180 / Math.PI + 180}deg`);
+    layer.appendChild(petal); setTimeout(() => petal.remove(), 1700);
+  }
 }
