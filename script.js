@@ -1,5 +1,6 @@
 const orb = document.querySelector('.cursor-orb');
 let audioCtx, melodyTimer, playing = false;
+let tiltFrame = 0;
 const moods = {
   friendship: { notes: [392, 494, 587, 659, 587, 494], symbols: ['🎁','⭐','🪁','☕','🌍','🤝'], lines: [
     'You found loyalty: the quiet promise of “I am here.”',
@@ -19,13 +20,16 @@ const moods = {
 
 document.addEventListener('pointermove', (event) => {
   if (!orb) return;
-  orb.style.left = `${event.clientX}px`;
-  orb.style.top = `${event.clientY}px`;
-  document.querySelectorAll('.tilt-card').forEach(card => {
-    const rect = card.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width - .5;
-    const y = (event.clientY - rect.top) / rect.height - .5;
-    card.style.transform = `rotateY(${x * 10}deg) rotateX(${-y * 10}deg)`;
+  orb.style.transform = `translate3d(${event.clientX - 7}px, ${event.clientY - 7}px, 0)`;
+  if (tiltFrame) return;
+  tiltFrame = requestAnimationFrame(() => {
+    document.querySelectorAll('.tilt-card').forEach(card => {
+      const rect = card.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width - .5;
+      const y = (event.clientY - rect.top) / rect.height - .5;
+      card.style.transform = `rotateY(${x * 5}deg) rotateX(${-y * 5}deg)`;
+    });
+    tiltFrame = 0;
   });
 });
 
@@ -60,22 +64,22 @@ function updateMusicButton() { const b = document.querySelector('.music-toggle')
 
 document.querySelector('.music-toggle')?.addEventListener('click', () => playing ? stopMusic() : startMusic());
 document.addEventListener('click', () => { if (!playing && document.body.dataset.mood) startMusic(); }, { once: true });
-window.addEventListener('load', () => { if (document.body.dataset.mood) setTimeout(startMusic, 500); createSecrets(); });
+window.addEventListener('load', createSecrets);
 
 document.querySelector('.wish-button')?.addEventListener('click', () => {
   const mood = document.body.dataset.mood;
   toast(moods[mood].lines[Math.floor(Math.random() * moods[mood].lines.length)]);
-  for (let i = 0; i < 16; i++) setTimeout(() => sparkle({ left: innerWidth/2, top: innerHeight/2, width: 0, height: 0 }), i * 45);
+  for (let i = 0; i < 7; i++) setTimeout(() => sparkle({ left: innerWidth/2, top: innerHeight/2, width: 0, height: 0 }), i * 55);
 });
 
 function createSecrets() {
   const mood = document.body.dataset.mood;
   if (!mood) return;
   const pack = moods[mood];
-  for (let i = 0; i < 14; i++) {
+  for (let i = 0; i < 8; i++) {
     const secret = document.createElement('button');
     secret.className = 'secret'; secret.type = 'button'; secret.textContent = pack.symbols[i % pack.symbols.length];
-    secret.style.left = `${5 + Math.random() * 86}vw`; secret.style.top = `${14 + Math.random() * 74}vh`; secret.style.animationDelay = `${-Math.random() * 5}s`;
+    secret.style.left = `${8 + Math.random() * 78}vw`; secret.style.top = `${16 + Math.random() * 68}vh`; secret.style.animationDelay = `${-Math.random() * 5}s`;
     secret.addEventListener('click', () => { secret.classList.add('revealed'); secret.textContent = pack.lines[i % pack.lines.length]; toast('Easter egg found!'); });
     document.body.appendChild(secret);
   }
