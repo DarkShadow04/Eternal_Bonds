@@ -1,94 +1,247 @@
-const canvas = document.querySelector('.fx-canvas');
-const ctx = canvas?.getContext('2d');
-let audioCtx, melodyTimer, playing = false;
+const canvas = document.querySelector('#world');
+const ctx = canvas.getContext('2d');
+const mouseLight = document.querySelector('.mouse-light');
+const toast = document.querySelector('.toast');
+const scenes = [...document.querySelectorAll('.scene')];
+let particles = [];
 let bursts = [];
-let tiltFrame = 0;
-let particleFrame = 0;
-const moods = {
-  friendship: {
-    notes: [392, 440, 523, 587, 659, 587, 523, 440],
-    symbols: ['🎁','⭐','🪁','☕','🌍','🤝'],
-    lines: [
-      'You found loyalty: the quiet promise of “I am here.”',
-      'Secret wish: may your group chats never run out of laughter.',
-      'Hidden quote: real friends turn distance into just another small detail.',
-      'Tiny blessing: may every reunion feel like sunlight after rain.',
-      'Friendship badge unlocked: memories are better when shared.',
-      'Real friends make heavy days easier to carry.',
-      'May your circle always feel honest, safe, and joyful.'
-    ],
-    quotes: [
-      ['🌍', 'Friendship is the language that turns different worlds into one warm home.'],
-      ['🪁', 'May your friends be the wind behind your courage and the laughter inside ordinary days.'],
-      ['☕', 'Good friends make small moments feel like stories you will tell forever.'],
-      ['🧭', 'A true friend helps you remember who you are when life feels noisy.'],
-      ['🌈', 'Friendship is happiness multiplied by sharing and sadness divided by care.']
-    ]
-  },
-  girlfriend: {
-    notes: [330, 392, 494, 523, 659, 587, 494, 392],
-    symbols: ['💖','🌹','✨','💌','🌙','🦋'],
-    lines: [
-      'Secret note: you are loved in details, not just grand gestures.',
-      'Hidden wish: may her day feel soft, safe, and beautifully special.',
-      'Tiny quote: love is choosing kindness again and again.',
-      'Rose unlocked: your smile is someone’s favorite notification.',
-      'Sparkle found: may affection always feel respectful and real.',
-      'May every promise feel gentle, steady, and true.',
-      'You deserve love that feels peaceful, proud, and present.'
-    ],
-    quotes: [
-      ['💌', 'May today remind you how deeply you are cherished, admired, respected, and loved.'],
-      ['🌙', 'With you, even silence feels like music and every ordinary road becomes a memory lane.'],
-      ['🌹', 'Happy Girlfriend Day to the heart that makes my life kinder, brighter, and beautifully real.'],
-      ['✨', 'Love feels magical when it is patient, playful, loyal, and honest.'],
-      ['🦋', 'You bring softness to my days and courage to my tomorrows.']
-    ]
-  }
+let currentScene = 'galaxy';
+let audioCtx;
+let musicTimer;
+let playing = false;
+let volume = Number(document.querySelector('.volume')?.value || 0.08);
+
+const scores = {
+  ambient: [261.63, 329.63, 392, 493.88, 440, 392],
+  friendship: [293.66, 369.99, 440, 554.37, 493.88, 440],
+  girlfriend: [220, 277.18, 329.63, 392, 369.99, 329.63]
 };
 
-document.addEventListener('pointermove', (event) => {
-  drawAsteroidTrail(event.clientX, event.clientY);
-  if (!tiltFrame) {
-    tiltFrame = requestAnimationFrame(() => {
-      document.querySelectorAll('.tilt-card').forEach(card => {
-        const rect = card.getBoundingClientRect();
-        const x = (event.clientX - rect.left) / rect.width - .5;
-        const y = (event.clientY - rect.top) / rect.height - .5;
-        card.style.transform = `rotateY(${x * 4}deg) rotateX(${-y * 4}deg)`;
-      });
-      tiltFrame = 0;
-    });
-  }
-});
+const eggs = {
+  friendship: [
+    ['⭐', 'Real friends stay even after the conversation ends.'],
+    ['🦋', 'Distance changes places, never hearts.'],
+    ['🏮', 'Some friendships quietly become home.'],
+    ['🌙', "The best friendships don't need perfect words."]
+  ],
+  girlfriend: [
+    ['🌙', "You are someone's favourite chapter."],
+    ['🌹', 'Love grows quietly.'],
+    ['✨', "Forever begins with today's little moments."],
+    ['🦋', 'Home is wherever your heart feels safe.']
+  ]
+};
 
-function drawAsteroidTrail(x, y) {
-  if (particleFrame) return;
-  particleFrame = requestAnimationFrame(() => {
-    const particle = document.createElement('span');
-    particle.className = 'asteroid-particle';
-    particle.style.left = `${x + (Math.random() - .5) * 10}px`;
-    particle.style.top = `${y + (Math.random() - .5) * 10}px`;
-    particle.style.setProperty('--dx', `${(Math.random() - .5) * 44}px`);
-    particle.style.setProperty('--dy', `${18 + Math.random() * 34}px`);
-    document.body.appendChild(particle);
-    setTimeout(() => particle.remove(), 700);
-    particleFrame = 0;
-  });
-}
-
-document.querySelectorAll('.portal, .wish-button').forEach(item => {
-  item.addEventListener('pointerenter', () => sparkle(item.getBoundingClientRect()));
-});
-
-function resizeCanvas() {
-  if (!canvas) return;
+function resize() {
   canvas.width = innerWidth * devicePixelRatio;
   canvas.height = innerHeight * devicePixelRatio;
   ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
 }
-resizeCanvas();
-addEventListener('resize', resizeCanvas);
+resize();
+addEventListener('resize', resize);
+
+function seedParticles() {
+  particles = Array.from({ length: 120 }, () => ({
+    x: Math.random() * innerWidth,
+    y: Math.random() * innerHeight,
+    vx: (Math.random() - 0.5) * 0.35,
+    vy: (Math.random() - 0.5) * 0.35,
+    size: 0.8 + Math.random() * 2.8,
+    hue: Math.random() * 360,
+    phase: Math.random() * Math.PI * 2
+  }));
+}
+seedParticles();
+
+function animate() {
+  ctx.clearRect(0, 0, innerWidth, innerHeight);
+  drawAmbient();
+  drawBursts();
+  requestAnimationFrame(animate);
+}
+animate();
+
+function drawAmbient() {
+  for (const p of particles) {
+    p.x += p.vx;
+    p.y += currentScene === 'girlfriend' ? p.vy + 0.65 : p.vy;
+    p.phase += 0.03;
+    if (p.x < -20) p.x = innerWidth + 20;
+    if (p.x > innerWidth + 20) p.x = -20;
+    if (p.y < -20) p.y = innerHeight + 20;
+    if (p.y > innerHeight + 20) p.y = -20;
+
+    ctx.save();
+    ctx.globalAlpha = currentScene === 'galaxy' ? 0.7 : 0.5;
+    if (currentScene === 'friendship') {
+      ctx.fillStyle = `hsla(${38 + p.hue % 40}, 100%, 68%, .85)`;
+      ctx.shadowColor = '#ffd36e';
+    } else if (currentScene === 'girlfriend') {
+      ctx.fillStyle = `hsla(${330 + p.hue % 40}, 100%, 76%, .85)`;
+      ctx.shadowColor = '#ff7abf';
+    } else {
+      ctx.fillStyle = `hsla(${190 + p.hue % 80}, 100%, 76%, .85)`;
+      ctx.shadowColor = '#72f6ff';
+    }
+    ctx.shadowBlur = 14;
+    ctx.beginPath();
+    ctx.arc(p.x + Math.sin(p.phase) * 6, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function addBurst(x, y, mode) {
+  const palette = mode === 'girlfriend' ? ['#ff7abf', '#ffd1e8', '#ffffff', '#ff3d9a'] : ['#ffd36e', '#72f6ff', '#ffffff', '#9d8cff'];
+  const shapes = mode === 'girlfriend' ? ['heart', 'petal', 'circle'] : ['star', 'band', 'circle'];
+  for (let i = 0; i < 110; i++) {
+    const angle = Math.PI * 2 * i / 110;
+    const speed = 2.5 + Math.random() * 5.6;
+    bursts.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      age: 0,
+      life: 72 + Math.random() * 45,
+      color: palette[i % palette.length],
+      shape: shapes[i % shapes.length],
+      size: 2.5 + Math.random() * 4
+    });
+  }
+}
+
+function drawBursts() {
+  bursts = bursts.filter(b => b.age < b.life);
+  for (const b of bursts) {
+    b.age += 1;
+    b.x += b.vx;
+    b.y += b.vy;
+    b.vy += 0.035;
+    const alpha = 1 - b.age / b.life;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(b.x, b.y);
+    ctx.rotate(b.age * 0.08);
+    ctx.fillStyle = b.color;
+    ctx.shadowColor = b.color;
+    ctx.shadowBlur = 18;
+    drawShape(b);
+    ctx.restore();
+  }
+}
+
+function drawShape(b) {
+  if (b.shape === 'heart') {
+    ctx.beginPath();
+    ctx.moveTo(0, b.size);
+    ctx.bezierCurveTo(-b.size * 2, -b.size, -b.size, -b.size * 2.2, 0, -b.size * 0.7);
+    ctx.bezierCurveTo(b.size, -b.size * 2.2, b.size * 2, -b.size, 0, b.size);
+    ctx.fill();
+  } else if (b.shape === 'star') {
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const a = i * Math.PI * 0.4;
+      ctx.lineTo(Math.cos(a) * b.size * 2.3, Math.sin(a) * b.size * 2.3);
+      ctx.lineTo(Math.cos(a + 0.22) * b.size, Math.sin(a + 0.22) * b.size);
+    }
+    ctx.closePath();
+    ctx.fill();
+  } else if (b.shape === 'petal') {
+    ctx.scale(0.8, 1.5);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, b.size, b.size * 1.8, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (b.shape === 'band') {
+    ctx.strokeStyle = b.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, b.size * 2.2, b.size, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  } else {
+    ctx.beginPath();
+    ctx.arc(0, 0, b.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+document.addEventListener('pointermove', event => {
+  mouseLight.style.setProperty('--mx', `${event.clientX}px`);
+  mouseLight.style.setProperty('--my', `${event.clientY}px`);
+  if (Math.random() > 0.72) addTrail(event.clientX, event.clientY);
+});
+
+function addTrail(x, y) {
+  const dot = document.createElement('span');
+  dot.className = 'spark-trail';
+  dot.style.cssText = `left:${x}px;top:${y}px;--dx:${(Math.random() - 0.5) * 42}px;--dy:${20 + Math.random() * 36}px`;
+  document.body.appendChild(dot);
+  setTimeout(() => dot.remove(), 650);
+}
+
+const observer = new IntersectionObserver(entries => {
+  for (const entry of entries) {
+    if (entry.isIntersecting) entry.target.classList.add('visible');
+  }
+}, { threshold: 0.18 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+const sceneObserver = new IntersectionObserver(entries => {
+  const visible = entries.filter(e => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+  if (visible) {
+    currentScene = visible.target.dataset.scene;
+    if (currentScene === 'friendship') document.querySelector('.music-select').value = 'friendship';
+    if (currentScene === 'girlfriend') document.querySelector('.music-select').value = 'girlfriend';
+  }
+}, { threshold: [0.45, 0.65] });
+scenes.forEach(scene => sceneObserver.observe(scene));
+
+function buildEggs() {
+  document.querySelectorAll('.egg-zone').forEach(zone => {
+    const kind = zone.dataset.kind;
+    const container = zone.querySelector('.eggs');
+    const found = new Set();
+    eggs[kind].forEach(([icon, message], index) => {
+      const button = document.createElement('button');
+      button.className = 'egg';
+      button.type = 'button';
+      button.textContent = icon;
+      button.addEventListener('click', () => {
+        button.classList.add('found');
+        found.add(index);
+        showToast(message);
+        if (found.size === eggs[kind].length) zone.querySelector('.unlock-message').hidden = false;
+      });
+      container.appendChild(button);
+    });
+  });
+}
+buildEggs();
+
+document.querySelector('.moon')?.addEventListener('click', event => showToast(event.currentTarget.dataset.egg));
+document.querySelector('.moon')?.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') showToast(event.currentTarget.dataset.egg); });
+
+document.querySelectorAll('.wish-button').forEach(button => {
+  button.addEventListener('click', () => {
+    const mode = button.dataset.burst === 'girlfriend' ? 'girlfriend' : 'friendship';
+    showToast(mode === 'girlfriend' ? 'A love wish is blooming across the sky.' : 'A friendship wish is lighting the sky.');
+    addBurst(innerWidth * 0.5, innerHeight * 0.25, mode);
+    setTimeout(() => addBurst(innerWidth * 0.35, innerHeight * 0.34, mode), 220);
+    setTimeout(() => addBurst(innerWidth * 0.68, innerHeight * 0.3, mode), 420);
+  });
+});
+
+document.querySelector('.envelope')?.addEventListener('click', event => {
+  const letter = document.querySelector('.letter-text');
+  const open = letter.hidden;
+  letter.hidden = !open;
+  event.currentTarget.setAttribute('aria-expanded', String(open));
+});
+
+document.querySelector('.theme-toggle').addEventListener('click', event => {
+  const next = document.body.dataset.theme === 'night' ? 'day' : 'night';
+  document.body.dataset.theme = next;
+  event.currentTarget.textContent = next === 'night' ? '☀️ Day' : '🌙 Night';
+});
 
 function ensureAudio() {
   audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
@@ -96,121 +249,58 @@ function ensureAudio() {
 }
 function startMusic() {
   ensureAudio();
-  const mood = document.body.dataset.mood || 'friendship';
-  const notes = moods[mood].notes;
-  let i = 0;
   stopMusic(false);
   playing = true;
-  melodyTimer = setInterval(() => {
-    const root = notes[i++ % notes.length];
-    playTone(root, .05, .48, 'sine');
-    setTimeout(() => playTone(root * 1.5, .025, .34, 'triangle'), 90);
-    setTimeout(() => playTone(root * 2, .018, .28, 'sine'), 180);
-  }, 620);
-  updateMusicButton();
+  document.querySelector('.play-toggle').textContent = '⏸ Pause';
+  let i = 0;
+  musicTimer = setInterval(() => {
+    const mode = document.querySelector('.music-select').value;
+    const note = scores[mode][i++ % scores[mode].length];
+    tone(note, volume, 0.72, 'sine');
+    setTimeout(() => tone(note * 1.5, volume * 0.48, 0.55, 'triangle'), 120);
+    setTimeout(() => tone(note * 2, volume * 0.28, 0.42, 'sine'), 260);
+    if (mode === 'girlfriend') setTimeout(() => tone(note / 2, volume * 0.16, 0.9, 'sine'), 40);
+  }, 760);
 }
-function playTone(freq, volume, length, type) {
+function stopMusic(update = true) {
+  clearInterval(musicTimer);
+  playing = false;
+  if (update) document.querySelector('.play-toggle').textContent = '▶ Play';
+}
+function tone(freq, gainValue, duration, type) {
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
-  osc.type = type; osc.frequency.value = freq;
-  gain.gain.setValueAtTime(.0001, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(volume, audioCtx.currentTime + .035);
-  gain.gain.exponentialRampToValueAtTime(.0001, audioCtx.currentTime + length);
-  osc.connect(gain).connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + length + .03);
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, gainValue), audioCtx.currentTime + 0.04);
+  gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration + 0.05);
 }
-function stopMusic(update = true) { clearInterval(melodyTimer); playing = false; if (update) updateMusicButton(); }
-function updateMusicButton() { const b = document.querySelector('.music-toggle'); if (b) b.textContent = playing ? '⏸ Pause music' : '▶ Play music'; }
 
-document.querySelector('.music-toggle')?.addEventListener('click', () => playing ? stopMusic() : startMusic());
-document.addEventListener('click', () => { if (!playing && document.body.dataset.mood) startMusic(); }, { once: true });
-window.addEventListener('load', () => { randomizeQuotes(); createSecrets(); });
+document.querySelector('.play-toggle').addEventListener('click', () => playing ? stopMusic() : startMusic());
+document.querySelector('.volume').addEventListener('input', event => { volume = Number(event.target.value); });
+document.querySelector('.music-select').addEventListener('change', () => { if (playing) startMusic(); });
+document.addEventListener('click', () => { if (!playing) startMusic(); }, { once: true });
 
-document.querySelector('.wish-button')?.addEventListener('click', () => {
-  const mood = document.body.dataset.mood;
-  showFadingQuote(randomLine(moods[mood].lines));
-  launchCelebration(document.querySelector('.wish-button')?.dataset.effect || mood);
+document.querySelector('.fullscreen').addEventListener('click', () => {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+});
+document.querySelector('.share').addEventListener('click', async () => {
+  const data = { title: 'Eternal Bonds', text: 'A cinematic Friendship and Girlfriend Day greeting experience.', url: location.href };
+  if (navigator.share) await navigator.share(data);
+  else {
+    await navigator.clipboard?.writeText(location.href);
+    showToast('Link copied to clipboard.');
+  }
 });
 
-function randomizeQuotes() {
-  const mood = document.body.dataset.mood;
-  if (!mood) return;
-  const cards = [...document.querySelectorAll('.quote-card')];
-  const selected = [...moods[mood].quotes].sort(() => Math.random() - .5).slice(0, cards.length);
-  cards.forEach((card, index) => {
-    const [icon, quote] = selected[index];
-    card.innerHTML = `<span>${icon}</span><p>${quote}</p>`;
-  });
-}
-function createSecrets() {
-  const mood = document.body.dataset.mood;
-  const field = document.querySelector('.secret-field');
-  if (!mood || !field) return;
-  const pack = moods[mood];
-  field.innerHTML = '';
-  for (let i = 0; i < 8; i++) {
-    const secret = document.createElement('button');
-    secret.className = 'secret'; secret.type = 'button'; secret.textContent = pack.symbols[i % pack.symbols.length];
-    secret.addEventListener('click', () => showFadingQuote(randomLine(pack.lines)));
-    field.appendChild(secret);
-  }
-}
-function showFadingQuote(message) {
-  const field = document.querySelector('.secret-field');
-  const note = document.createElement('div');
-  note.className = 'fading-quote';
-  note.textContent = message;
-  (field || document.body).appendChild(note);
-  setTimeout(() => note.remove(), 3600);
-}
-function randomLine(lines) { return lines[Math.floor(Math.random() * lines.length)]; }
-function sparkle(rect) {
-  const dot = document.createElement('span');
-  dot.className = 'sparkle'; dot.textContent = '✦'; dot.style.left = `${rect.left + rect.width/2 + (Math.random() - .5) * 120}px`; dot.style.top = `${rect.top + rect.height/2 + (Math.random() - .5) * 90}px`;
-  document.body.appendChild(dot); setTimeout(() => dot.remove(), 900);
-}
-function launchCelebration(effect) {
-  if (!ctx) return;
-  if (effect === 'bloom') {
-    addFirework(innerWidth * .5, innerHeight * .28, ['#ff7bb8', '#ffd1e6', '#ffffff'], 'petal');
-    setTimeout(() => addFirework(innerWidth * .68, innerHeight * .23, ['#ffc6dd', '#ff5da7', '#fff'], 'heart'), 260);
-    return;
-  }
-  addFirework(innerWidth * .46, innerHeight * .25, ['#62e8ff', '#e9c46a', '#ffffff'], 'star');
-  setTimeout(() => addFirework(innerWidth * .63, innerHeight * .22, ['#8f7cff', '#62e8ff', '#fff'], 'diamond'), 250);
-  setTimeout(() => addFirework(innerWidth * .36, innerHeight * .34, ['#e9c46a', '#ffffff', '#62e8ff'], 'circle'), 420);
-}
-function addFirework(x, y, colors, shape) {
-  for (let i = 0; i < 86; i++) {
-    const angle = Math.PI * 2 * (i / 86);
-    const speed = 2.2 + Math.random() * 4.2;
-    bursts.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 70 + Math.random() * 30, age: 0, color: colors[i % colors.length], shape, size: 2 + Math.random() * 3 });
-  }
-  animateBursts();
-}
-let animatingBursts = false;
-function animateBursts() {
-  if (animatingBursts || !ctx) return;
-  animatingBursts = true;
-  const frame = () => {
-    ctx.clearRect(0, 0, innerWidth, innerHeight);
-    bursts = bursts.filter(p => p.age < p.life);
-    for (const p of bursts) {
-      p.age++; p.x += p.vx; p.y += p.vy; p.vy += 0.035;
-      const alpha = Math.max(0, 1 - p.age / p.life);
-      ctx.globalAlpha = alpha; ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 16;
-      drawShape(p);
-    }
-    ctx.globalAlpha = 1; ctx.shadowBlur = 0;
-    if (bursts.length) requestAnimationFrame(frame); else animatingBursts = false;
-  };
-  requestAnimationFrame(frame);
-}
-function drawShape(p) {
-  ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.age * .08);
-  if (p.shape === 'petal') { ctx.scale(1, 1.45); }
-  if (p.shape === 'diamond') { ctx.rotate(Math.PI / 4); ctx.fillRect(-p.size, -p.size, p.size * 2, p.size * 2); }
-  else if (p.shape === 'star') { ctx.beginPath(); for (let i = 0; i < 5; i++) { const a = i * Math.PI * .4; ctx.lineTo(Math.cos(a) * p.size * 2.2, Math.sin(a) * p.size * 2.2); ctx.lineTo(Math.cos(a + .22) * p.size, Math.sin(a + .22) * p.size); } ctx.closePath(); ctx.fill(); }
-  else if (p.shape === 'heart') { ctx.beginPath(); ctx.moveTo(0, p.size); ctx.bezierCurveTo(-p.size*2, -p.size, -p.size, -p.size*2.2, 0, -p.size*.7); ctx.bezierCurveTo(p.size, -p.size*2.2, p.size*2, -p.size, 0, p.size); ctx.fill(); }
-  else { ctx.beginPath(); ctx.arc(0, 0, p.size, 0, Math.PI * 2); ctx.fill(); }
-  ctx.restore();
+function showToast(message) {
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => toast.classList.remove('show'), 3600);
 }
