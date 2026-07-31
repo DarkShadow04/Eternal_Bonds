@@ -3,113 +3,45 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Eternal Bonds — Cinematic Greeting Experience</title>
+  <title>Eternal Bonds</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body data-theme="night">
-  <canvas id="world" aria-hidden="true"></canvas>
-  <div class="mouse-light" aria-hidden="true"></div>
-  <nav class="site-nav glass">
-    <a class="brand" href="#home">Eternal Bonds</a>
-    <div class="nav-links">
-      <a href="#friendship">Friendship</a>
-      <a href="#girlfriend">Girlfriend</a>
+<body data-page="home" data-theme="night">
+  <canvas id="ambience" aria-hidden="true"></canvas>
+  <div class="spotlight" aria-hidden="true"></div>
+  <iframe class="youtube-audio" src="https://www.youtube.com/embed/I3OJUwILelU?enablejsapi=1&autoplay=1&loop=1&playlist=I3OJUwILelU&playsinline=1&controls=0" title="Background tune" allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+
+  <nav class="top-nav glass">
+    <a class="brand" href="index.html">Eternal Bonds</a>
+    <div class="nav-actions">
+      <a class="nav-icon" href="friendship.html" aria-label="Friendship Day">🤝</a>
+      <a class="nav-icon" href="girlfriend.html" aria-label="Girlfriend Day">❤️</a>
       <button class="theme-toggle" type="button">☀️ Day</button>
     </div>
   </nav>
 
-  <main>
-    <section id="home" class="scene home-scene" data-scene="galaxy">
-      <div class="orbital-set" aria-hidden="true">
-        <span>♡</span><span>✦</span><span>∞</span><span>🤝</span><span>✧</span>
+  <main class="page-shell home-shell">
+    <section class="home-hero glass reveal">
+      <p class="eyebrow">Cinematic greeting experience</p>
+      <h1>Some bonds are chosen. Some become forever.</h1>
+      <p class="lead">A clean, immersive celebration space for friendship, affection, memories, wishes, and hidden surprises—now split into focused pages instead of one clustered scroll.</p>
+      <div class="choice-grid">
+        <a class="choice-card friendship-card" href="friendship.html">
+          <span class="choice-icon">🤝</span>
+          <span><strong>Friendship Day</strong><small>Golden sunset, lanterns, timeline, hidden memories.</small></span>
+        </a>
+        <a class="choice-card girlfriend-card" href="girlfriend.html">
+          <span class="choice-icon">❤️</span>
+          <span><strong>Girlfriend Day</strong><small>Romantic moon, love letter, petals, secret notes.</small></span>
+        </a>
       </div>
-      <div class="hero glass reveal">
-        <p class="kicker">A cinematic greeting experience</p>
-        <h1>Some bonds are chosen. Some become forever.</h1>
-        <p class="hero-copy">Travel through a 3D-inspired galaxy of memories, wishes, music, hidden messages, lanterns, rain, petals, and glowing celebrations for the people who matter most.</p>
-        <div class="hero-actions">
-          <a class="glow-button friendship" href="#friendship">🤝 Friendship Day</a>
-          <a class="glow-button girlfriend" href="#girlfriend">❤️ Girlfriend Day</a>
-        </div>
-      </div>
-    </section>
-
-    <section id="friendship" class="scene friendship-scene" data-scene="friendship">
-      <div class="mountains" aria-hidden="true"></div>
-      <div class="lanterns" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-      <div class="scene-grid">
-        <header class="section-hero glass reveal">
-          <p class="kicker">Golden sunset • mountains • lanterns</p>
-          <h2>Friends are the family we choose, and the memories we build become the stars that guide us forever.</h2>
-          <p>Happy Friendship Day! May every laugh become a memory, every memory become a treasure, and every treasure remind us that true friendship never fades.</p>
-          <button class="wish-button" type="button" data-burst="friendship">Release friendship wish ✨</button>
-        </header>
-        <aside class="wish-panel glass reveal">
-          <h3>Thank you for being part of this journey.</h3>
-          <p>For shared laughs, quiet support, honest advice, impossible dreams, and every moment that made life lighter.</p>
-        </aside>
-      </div>
-
-      <section class="timeline glass reveal" aria-label="Friendship timeline">
-        <h3>Interactive Timeline</h3>
-        <div class="timeline-steps">
-          <button>🌱 First Hello</button><button>😊 Shared Laughs</button><button>🤝 Trust</button><button>🌍 Memories</button><button>∞ Forever Friends</button>
-        </div>
-      </section>
-
-      <section class="egg-zone glass reveal" data-kind="friendship">
-        <h3>Hidden Easter Eggs</h3>
-        <p>Find the stars, butterflies, lanterns, and moon to unlock a final memory.</p>
-        <div class="eggs" aria-live="polite"></div>
-        <div class="unlock-message" hidden>✨ You found every hidden memory.</div>
-      </section>
-    </section>
-
-    <section id="girlfriend" class="scene girlfriend-scene" data-scene="girlfriend">
-      <div class="moon" data-egg="You are someone's favourite chapter." aria-label="Hidden moon message" role="button" tabindex="0"></div>
-      <div class="couple" aria-hidden="true"></div>
-      <div class="blossom-tree" aria-hidden="true"></div>
-      <div class="scene-grid">
-        <header class="section-hero glass reveal">
-          <p class="kicker">Romantic night • moon • rain • rose petals</p>
-          <h2>Love isn't measured by days together, but by how peacefully two hearts choose each other every single day.</h2>
-          <p>Happy Girlfriend Day ❤️ Thank you for every smile, every conversation, every moment of patience, and every dream we continue building together.</p>
-          <button class="wish-button" type="button" data-burst="girlfriend">Bloom a love wish 🌹</button>
-        </header>
-        <aside class="letter-card glass reveal">
-          <button class="envelope" type="button" aria-expanded="false">💌 Open love letter</button>
-          <div class="letter-text" hidden>
-            <p>My favorite moments are not always loud. Sometimes they are the peaceful ones where your presence makes the whole world feel softer.</p>
-            <p>May today remind you how deeply you are appreciated, respected, protected, and loved.</p>
-          </div>
-        </aside>
-      </div>
-
-      <section class="egg-zone glass reveal" data-kind="girlfriend">
-        <h3>Hidden Affection Notes</h3>
-        <p>Click the moon, rose, stars, and butterfly to reveal the secret message.</p>
-        <div class="eggs" aria-live="polite"></div>
-        <div class="unlock-message" hidden>❤️ Thank you for making ordinary days feel extraordinary.</div>
-      </section>
     </section>
   </main>
 
-  <aside class="floating-controls glass" aria-label="Media controls">
-    <button class="play-toggle" type="button">▶ Play</button>
-    <label>🔊 <input class="volume" type="range" min="0" max="0.18" step="0.01" value="0.08"></label>
-    <select class="music-select" aria-label="Music selector">
-      <option value="ambient">Soft piano + orchestra</option>
-      <option value="friendship">Friendship acoustic</option>
-      <option value="girlfriend">Romantic rain</option>
-    </select>
-    <button class="fullscreen" type="button">⛶</button>
-    <button class="share" type="button">↗ Share</button>
-  </aside>
-
-  <div class="toast" aria-live="polite"></div>
+  <button class="music-control glass" type="button" aria-pressed="true">⏸ Pause tune</button>
   <script src="script.js"></script>
 </body>
 </html>
