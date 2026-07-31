@@ -1,5 +1,7 @@
-const orb = document.querySelector('.cursor-orb');
+const canvas = document.querySelector('.fx-canvas');
+const ctx = canvas?.getContext('2d');
 let audioCtx, melodyTimer, playing = false;
+let bursts = [];
 let tiltFrame = 0;
 let particleFrame = 0;
 const moods = {
@@ -79,6 +81,15 @@ document.querySelectorAll('.portal, .wish-button').forEach(item => {
   item.addEventListener('pointerenter', () => sparkle(item.getBoundingClientRect()));
 });
 
+function resizeCanvas() {
+  if (!canvas) return;
+  canvas.width = innerWidth * devicePixelRatio;
+  canvas.height = innerHeight * devicePixelRatio;
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+resizeCanvas();
+addEventListener('resize', resizeCanvas);
+
 function ensureAudio() {
   audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -91,15 +102,21 @@ function startMusic() {
   stopMusic(false);
   playing = true;
   melodyTimer = setInterval(() => {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine'; osc.frequency.value = notes[i++ % notes.length];
-    gain.gain.setValueAtTime(.0001, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(.06, audioCtx.currentTime + .03);
-    gain.gain.exponentialRampToValueAtTime(.0001, audioCtx.currentTime + .42);
-    osc.connect(gain).connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + .45);
+    const root = notes[i++ % notes.length];
+    playTone(root, .05, .48, 'sine');
+    setTimeout(() => playTone(root * 1.5, .025, .34, 'triangle'), 90);
+    setTimeout(() => playTone(root * 2, .018, .28, 'sine'), 180);
   }, 620);
   updateMusicButton();
+}
+function playTone(freq, volume, length, type) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type; osc.frequency.value = freq;
+  gain.gain.setValueAtTime(.0001, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(volume, audioCtx.currentTime + .035);
+  gain.gain.exponentialRampToValueAtTime(.0001, audioCtx.currentTime + length);
+  osc.connect(gain).connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + length + .03);
 }
 function stopMusic(update = true) { clearInterval(melodyTimer); playing = false; if (update) updateMusicButton(); }
 function updateMusicButton() { const b = document.querySelector('.music-toggle'); if (b) b.textContent = playing ? '⏸ Pause music' : '▶ Play music'; }
@@ -152,41 +169,48 @@ function sparkle(rect) {
   document.body.appendChild(dot); setTimeout(() => dot.remove(), 900);
 }
 function launchCelebration(effect) {
+  if (!ctx) return;
   if (effect === 'bloom') {
-    firework(innerWidth * .5, innerHeight * .28, ['#ff7bb8', '#ffd1e6', '#ffffff']);
-    setTimeout(() => flowerBloom(innerWidth * .5, innerHeight * .42), 240);
-    setTimeout(() => firework(innerWidth * .68, innerHeight * .22, ['#ffc6dd', '#ff5da7', '#fff']), 420);
+    addFirework(innerWidth * .5, innerHeight * .28, ['#ff7bb8', '#ffd1e6', '#ffffff'], 'petal');
+    setTimeout(() => addFirework(innerWidth * .68, innerHeight * .23, ['#ffc6dd', '#ff5da7', '#fff'], 'heart'), 260);
     return;
   }
-  firework(innerWidth * .46, innerHeight * .25, ['#62e8ff', '#e9c46a', '#ffffff']);
-  setTimeout(() => firework(innerWidth * .62, innerHeight * .2, ['#8f7cff', '#62e8ff', '#fff']), 260);
-  setTimeout(() => firework(innerWidth * .36, innerHeight * .34, ['#e9c46a', '#ffffff', '#62e8ff']), 430);
+  addFirework(innerWidth * .46, innerHeight * .25, ['#62e8ff', '#e9c46a', '#ffffff'], 'star');
+  setTimeout(() => addFirework(innerWidth * .63, innerHeight * .22, ['#8f7cff', '#62e8ff', '#fff'], 'diamond'), 250);
+  setTimeout(() => addFirework(innerWidth * .36, innerHeight * .34, ['#e9c46a', '#ffffff', '#62e8ff'], 'circle'), 420);
 }
-function firework(cx, cy, colors) {
-  const layer = document.querySelector('.sky-effects') || document.body;
-  for (let i = 0; i < 34; i++) {
-    const spark = document.createElement('span');
-    const angle = (Math.PI * 2 * i) / 34;
-    const distance = 70 + Math.random() * 120;
-    spark.className = 'spark';
-    spark.style.left = `${cx}px`; spark.style.top = `${cy}px`;
-    spark.style.setProperty('--x', `${Math.cos(angle) * distance}px`);
-    spark.style.setProperty('--y', `${Math.sin(angle) * distance}px`);
-    spark.style.setProperty('--spark', colors[i % colors.length]);
-    layer.appendChild(spark); setTimeout(() => spark.remove(), 1000);
+function addFirework(x, y, colors, shape) {
+  for (let i = 0; i < 86; i++) {
+    const angle = Math.PI * 2 * (i / 86);
+    const speed = 2.2 + Math.random() * 4.2;
+    bursts.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 70 + Math.random() * 30, age: 0, color: colors[i % colors.length], shape, size: 2 + Math.random() * 3 });
   }
+  animateBursts();
 }
-function flowerBloom(cx, cy) {
-  const layer = document.querySelector('.sky-effects') || document.body;
-  for (let i = 0; i < 28; i++) {
-    const petal = document.createElement('span');
-    const angle = (Math.PI * 2 * i) / 28;
-    const distance = 42 + Math.random() * 112;
-    petal.className = 'petal';
-    petal.style.left = `${cx}px`; petal.style.top = `${cy}px`;
-    petal.style.setProperty('--x', `${Math.cos(angle) * distance}px`);
-    petal.style.setProperty('--y', `${Math.sin(angle) * distance}px`);
-    petal.style.setProperty('--r', `${angle * 180 / Math.PI + 180}deg`);
-    layer.appendChild(petal); setTimeout(() => petal.remove(), 1700);
-  }
+let animatingBursts = false;
+function animateBursts() {
+  if (animatingBursts || !ctx) return;
+  animatingBursts = true;
+  const frame = () => {
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    bursts = bursts.filter(p => p.age < p.life);
+    for (const p of bursts) {
+      p.age++; p.x += p.vx; p.y += p.vy; p.vy += 0.035;
+      const alpha = Math.max(0, 1 - p.age / p.life);
+      ctx.globalAlpha = alpha; ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 16;
+      drawShape(p);
+    }
+    ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+    if (bursts.length) requestAnimationFrame(frame); else animatingBursts = false;
+  };
+  requestAnimationFrame(frame);
+}
+function drawShape(p) {
+  ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.age * .08);
+  if (p.shape === 'petal') { ctx.scale(1, 1.45); }
+  if (p.shape === 'diamond') { ctx.rotate(Math.PI / 4); ctx.fillRect(-p.size, -p.size, p.size * 2, p.size * 2); }
+  else if (p.shape === 'star') { ctx.beginPath(); for (let i = 0; i < 5; i++) { const a = i * Math.PI * .4; ctx.lineTo(Math.cos(a) * p.size * 2.2, Math.sin(a) * p.size * 2.2); ctx.lineTo(Math.cos(a + .22) * p.size, Math.sin(a + .22) * p.size); } ctx.closePath(); ctx.fill(); }
+  else if (p.shape === 'heart') { ctx.beginPath(); ctx.moveTo(0, p.size); ctx.bezierCurveTo(-p.size*2, -p.size, -p.size, -p.size*2.2, 0, -p.size*.7); ctx.bezierCurveTo(p.size, -p.size*2.2, p.size*2, -p.size, 0, p.size); ctx.fill(); }
+  else { ctx.beginPath(); ctx.arc(0, 0, p.size, 0, Math.PI * 2); ctx.fill(); }
+  ctx.restore();
 }
