@@ -6,7 +6,15 @@ const toast = document.querySelector('.toast');
 const player = document.querySelector('.youtube-audio');
 let particles = [];
 let bursts = [];
+let floatNotes = [];
 let tunePlaying = true;
+let userPausedTune = false;
+
+const backgroundWords = {
+  home: ['smile', 'forever', 'joy', 'warmth', 'spark', 'kindness'],
+  friendship: ['laugh', 'trust', 'memories', 'besties', 'home', 'together'],
+  girlfriend: ['cuteness', 'blush', 'care', 'dream', 'sweet', 'forever']
+};
 
 const eggData = {
   friendship: [
@@ -40,6 +48,15 @@ function seed() {
     size: 1 + Math.random() * 2.7,
     phase: Math.random() * Math.PI * 2
   }));
+  const words = backgroundWords[page] || backgroundWords.home;
+  floatNotes = Array.from({ length: 16 }, () => ({
+    text: words[Math.floor(Math.random() * words.length)],
+    x: Math.random() * innerWidth,
+    y: Math.random() * innerHeight,
+    speed: 0.18 + Math.random() * 0.28,
+    size: 14 + Math.random() * 16,
+    alpha: 0.055 + Math.random() * 0.07
+  }));
 }
 seed();
 requestAnimationFrame(draw);
@@ -47,6 +64,7 @@ requestAnimationFrame(draw);
 function draw() {
   ctx.clearRect(0, 0, innerWidth, innerHeight);
   drawParticles();
+  drawFloatingNotes();
   drawBursts();
   requestAnimationFrame(draw);
 }
@@ -70,6 +88,25 @@ function drawParticles() {
     ctx.fill();
     ctx.restore();
   }
+}
+
+function drawFloatingNotes() {
+  const tint = page === 'friendship' ? '255, 211, 110' : page === 'girlfriend' ? '255, 139, 198' : '157, 245, 255';
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (const note of floatNotes) {
+    note.y -= note.speed;
+    if (note.y < -40) {
+      note.y = innerHeight + 40;
+      note.x = Math.random() * innerWidth;
+    }
+    ctx.globalAlpha = note.alpha;
+    ctx.fillStyle = `rgba(${tint}, 1)`;
+    ctx.font = `800 ${note.size}px Manrope, sans-serif`;
+    ctx.fillText(note.text, note.x, note.y);
+  }
+  ctx.restore();
 }
 
 function addBurst(mode) {
@@ -185,10 +222,15 @@ buildEggs();
 function sendPlayer(command) {
   player?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: command, args: [] }), '*');
 }
-addEventListener('load', () => setTimeout(() => sendPlayer('playVideo'), 900));
-document.addEventListener('click', () => { if (tunePlaying) sendPlayer('playVideo'); }, { once: true });
+addEventListener('load', () => setTimeout(() => {
+  if (!userPausedTune && tunePlaying) sendPlayer('playVideo');
+}, 900));
+document.addEventListener('click', () => {
+  if (!userPausedTune && tunePlaying) sendPlayer('playVideo');
+}, { once: true });
 document.querySelector('.music-control')?.addEventListener('click', event => {
   tunePlaying = !tunePlaying;
+  userPausedTune = !tunePlaying;
   sendPlayer(tunePlaying ? 'playVideo' : 'pauseVideo');
   event.currentTarget.textContent = tunePlaying ? '⏸ Pause tune' : '▶ Play tune';
   event.currentTarget.setAttribute('aria-pressed', String(tunePlaying));
