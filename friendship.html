@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Friendship Day — Eternal Bonds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="friendship" data-theme="night">
+  <canvas id="ambience" aria-hidden="true"></canvas>
+  <div class="spotlight" aria-hidden="true"></div>
+  <audio class="site-audio" src="files/Inner_Peace.mp3" preload="auto" autoplay loop></audio>
+
+  <nav class="top-nav glass"><a class="brand" href="index.html">Eternal Bonds</a><div class="nav-actions"><a class="nav-icon active" href="friendship.html">🤝</a><a class="nav-icon" href="girlfriend.html">❤️</a><button class="theme-toggle" type="button">☀️ Day</button></div></nav>
+
+  <main class="page-shell detail-shell friendship-theme">
+    <section class="detail-hero glass reveal">
+      <p class="eyebrow">Friendship Day • Golden sunset</p>
+      <div class="date-row compact" aria-label="Friendship celebration dates"><span><b>30 July</b> International Day of Friendship every year</span><span><b>2 Aug 2026</b> Friendship Day in India • Sunday</span></div>
+      <h1>Friends are the family we choose.</h1>
+      <p class="lead">May every laugh become a memory, every memory become a treasure, and every treasure remind us that true friendship never fades.</p>
+      <button class="wish-button" type="button" data-burst="friendship">Release friendship wish ✨</button>
+    </section>
+
+    <section class="content-grid">
+      <article class="info-card glass reveal"><h2>Wish</h2><p>Thank you for showing up, listening with patience, and making ordinary days lighter.</p></article>
+      <article class="info-card glass reveal"><h2>Memory</h2><p>Inside jokes, shared silences, long talks, and small moments become the map of forever friends.</p></article>
+      <article class="info-card glass reveal"><h2>Promise</h2><p>To celebrate wins loudly, hold space during storms, and stay kind even when life gets busy.</p></article>
+    </section>
+
+    <section class="timeline glass reveal"><h2>Timeline</h2><div class="timeline-steps"><span>🌱 First Hello</span><span>😊 Shared Laughs</span><span>🤝 Trust</span><span>🌍 Memories</span><span>∞ Forever Friends</span></div></section>
+    <section class="egg-zone glass reveal" data-kind="friendship"><h2>Hidden Memories</h2><p>Tap each symbol to reveal a quote. Collect all to unlock the final message.</p><div class="eggs" aria-live="polite"></div><div class="unlock-message" hidden>✨ You found every hidden memory.</div></section>
+  </main>
+
+  <button class="music-control glass" type="button" aria-pressed="true">⏸ Pause tune</button>
+  <div class="toast" aria-live="polite"></div>
+  <script src="script.js"></script>
+</body>
+</html>

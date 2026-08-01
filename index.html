@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eternal Bonds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="home" data-theme="night">
+  <canvas id="ambience" aria-hidden="true"></canvas>
+  <div class="spotlight" aria-hidden="true"></div>
+  <audio class="site-audio" src="files/Inner_Peace.mp3" preload="auto" autoplay loop></audio>
+
+  <nav class="top-nav glass">
+    <a class="brand" href="index.html">Eternal Bonds</a>
+    <div class="nav-actions">
+      <a class="nav-icon" href="friendship.html" aria-label="Friendship Day">🤝</a>
+      <a class="nav-icon" href="girlfriend.html" aria-label="Girlfriend Day">❤️</a>
+      <button class="theme-toggle" type="button">☀️ Day</button>
+    </div>
+  </nav>
+
+  <main class="page-shell home-shell">
+    <section class="home-hero glass reveal">
+      <p class="eyebrow">Heartfelt Wishes</p>
+      <h1>Some bonds are chosen. Some become forever.</h1>
+      <p class="lead">A clean, immersive celebration space for friendship, affection, memories, wishes, and hidden surprises, now split into focused pages instead of one clustered scroll.</p>
+      <div class="date-row" aria-label="Celebration dates">
+        <span><b>30 July</b> International Day of Friendship</span>
+        <span><b>1 Aug 2026</b> National Girlfriend Day</span>
+        <span><b>2 Aug 2026</b> Friendship Day India</span>
+      </div>
+      <div class="choice-grid">
+        <a class="choice-card friendship-card" href="friendship.html">
+          <span class="choice-icon">🤝</span>
+          <span><strong>Friendship Day</strong><small>Golden sunset, lanterns, timeline, hidden memories.</small></span>
+        </a>
+        <a class="choice-card girlfriend-card" href="girlfriend.html">
+          <span class="choice-icon">❤️</span>
+          <span><strong>Girlfriend Day</strong><small>Romantic moon, love letter, petals, secret notes.</small></span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <button class="music-control glass" type="button" aria-pressed="true">⏸ Pause tune</button>
+  <script src="script.js"></script>
+</body>
+</html>
