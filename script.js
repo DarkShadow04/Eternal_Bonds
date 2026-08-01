@@ -9,6 +9,7 @@ let bursts = [];
 let floatNotes = [];
 let tunePlaying = true;
 let userPausedTune = false;
+let lastFrame = 0;
 
 const backgroundWords = {
   home: ['smile', 'forever', 'joy', 'warmth', 'spark', 'kindness'],
@@ -21,15 +22,35 @@ const eggData = {
     ['⭐', 'Real friends stay even after the conversation ends.'],
     ['🦋', 'Distance changes places, never hearts.'],
     ['🏮', 'Some friendships quietly become home.'],
-    ['🌙', "The best friendships don't need perfect words."]
+    ['🌙', "The best friendships don't need perfect words."],
+    ['🌻', 'A good friend turns a normal day into a memory.'],
+    ['☕', 'Some laughs are tiny holidays for the heart.'],
+    ['🧭', 'True friends remind you where your courage lives.'],
+    ['🎈', 'May your friendship always feel light, honest, and safe.'],
+    ['🌈', 'Shared memories are colors life never loses.'],
+    ['✨', 'You found a note: friendship is a quiet kind of magic.']
   ],
   girlfriend: [
-    ['🌙', "You are someone's favourite chapter."],
-    ['🌹', 'Love grows quietly.'],
-    ['✨', "Forever begins with today's little moments."],
-    ['🦋', 'Home is wherever your heart feels safe.']
+    ['🌙', "You are someone's favourite reason to smile today."],
+    ['🌹', 'Kindness looks beautiful on you.'],
+    ['✨', "Cute moments become unforgettable when they're shared with a bestie."],
+    ['🦋', 'Home is wherever your heart feels safe and cheerful.'],
+    ['🌸', 'Your smile can make a simple day feel special.'],
+    ['🍫', 'You deserve sweet moments, soft laughter, and peaceful days.'],
+    ['🎀', 'Being your friend is a little blessing in this big world.'],
+    ['☁️', 'May your worries feel lighter and your happiness feel close.'],
+    ['💫', 'Some people sparkle without trying. You are one of them.'],
+    ['😊', 'This note only exists to make you smile.']
   ]
 };
+
+const letterNotes = [
+  'Some people make life lighter just by being themselves. You are one of those rare, beautiful people.',
+  'I hope this little page reminds you that your smile matters and your happiness is worth caring about.',
+  'You are a very good friend: kind, cute, thoughtful, and genuinely special in a way that makes days brighter.',
+  'No big dramatic words here—just a simple truth: the world feels nicer with a friend like you in it.',
+  'May your day be soft, funny, peaceful, and full of tiny reasons to smile.'
+];
 
 function resize() {
   canvas.width = innerWidth * devicePixelRatio;
@@ -40,7 +61,8 @@ resize();
 addEventListener('resize', resize);
 
 function seed() {
-  particles = Array.from({ length: page === 'home' ? 90 : 70 }, () => ({
+  const smallScreen = innerWidth < 700;
+  particles = Array.from({ length: smallScreen ? 32 : page === 'home' ? 58 : 46 }, () => ({
     x: Math.random() * innerWidth,
     y: Math.random() * innerHeight,
     vx: (Math.random() - 0.5) * 0.35,
@@ -49,7 +71,7 @@ function seed() {
     phase: Math.random() * Math.PI * 2
   }));
   const words = backgroundWords[page] || backgroundWords.home;
-  floatNotes = Array.from({ length: 16 }, () => ({
+  floatNotes = Array.from({ length: smallScreen ? 7 : 12 }, () => ({
     text: words[Math.floor(Math.random() * words.length)],
     x: Math.random() * innerWidth,
     y: Math.random() * innerHeight,
@@ -61,12 +83,14 @@ function seed() {
 seed();
 requestAnimationFrame(draw);
 
-function draw() {
+function draw(time = 0) {
+  requestAnimationFrame(draw);
+  if (document.hidden || time - lastFrame < 33) return;
+  lastFrame = time;
   ctx.clearRect(0, 0, innerWidth, innerHeight);
   drawParticles();
   drawFloatingNotes();
   drawBursts();
-  requestAnimationFrame(draw);
 }
 
 function drawParticles() {
@@ -194,6 +218,8 @@ document.querySelectorAll('.wish-button').forEach(button => {
 
 document.querySelector('.envelope')?.addEventListener('click', () => {
   const letter = document.querySelector('.letter-text');
+  if (!letter) return;
+  letter.textContent = letterNotes[Math.floor(Math.random() * letterNotes.length)];
   letter.hidden = !letter.hidden;
 });
 
